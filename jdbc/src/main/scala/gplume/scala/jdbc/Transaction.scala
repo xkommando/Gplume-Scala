@@ -14,7 +14,10 @@ class Transaction private[gplume](val session: DBSession,
                                   private[this] var isCompleted: Boolean) {
 
   def this(session: DBSession) {
-    this(session, true, false, session.connection.getTransactionIsolation, false)
+    this(session, resetAutoCommit = true,
+          rollBackOnly = false,
+          session.connection.getTransactionIsolation,
+          isCompleted = false)
   }
 
   def commit(): Unit ={
@@ -51,7 +54,11 @@ class Transaction private[gplume](val session: DBSession,
 
   def releaseSavepoint(savepoint: Savepoint) = session.connection.releaseSavepoint(savepoint)
 
-  private def complete(): Unit ={
+  /**
+   * reset connection to previous state
+   *
+   */
+  private def complete(): Unit = {
     val con = session.connection
     if (previousISOLevel != con.getTransactionIsolation)
       con.setTransactionIsolation(previousISOLevel)

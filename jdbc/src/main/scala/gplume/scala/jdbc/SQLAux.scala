@@ -8,7 +8,7 @@ import java.sql.{Blob, Clob, Date, PreparedStatement, ResultSet, ResultSetMetaDa
  */
 object SQLAux {
 
-  private case object PaddingParam
+  case object PaddingParam
 
   def quoteTo(param: String)(implicit b: StringBuilder): StringBuilder = {
     b append '\''
@@ -53,10 +53,9 @@ object SQLAux {
       case op: SQLOperation => sb ++= op.stmt
       case _ => sb += '?'
     }
-
   }
 
-  def lookupColumnName(i: Int)(implicit rsmd: ResultSetMetaData): String = {
+  def lookupColumnName(rsmd: ResultSetMetaData, i: Int): String = {
     val name = rsmd.getColumnLabel(i)
     if (name == null || name.isEmpty)
       rsmd.getCatalogName(i)
@@ -64,7 +63,7 @@ object SQLAux {
       name
   }
 
-  def getResultSetValue(index: Int)(implicit rs: ResultSet): AnyRef = {
+  def getResultSetValue(rs: ResultSet, index: Int ): AnyRef = {
     val obj = rs.getObject(index)
     if (obj == null)
       return None
@@ -115,28 +114,3 @@ object SQLAux {
       }
     }
 }
-
-//spring jdbc support JdbcUtils => getResultSetValue
-//    if (obj.isInstanceOf[Blob]) {
-//      val blob = obj.asInstanceOf[Blob]
-//      return blob.getBytes(1, blob.length.toInt)
-//    }
-//    else if (obj.isInstanceOf[Clob]) {
-//      val clob = obj.asInstanceOf[Clob]
-//      return clob.getSubString(1, clob.length.toInt)
-//    }
-//    else if (("oracle.sql.TIMESTAMP" == className) || ("oracle.sql.TIMESTAMPTZ" == className)) {
-//      return rs.getTimestamp(index)
-//    }
-//    else if (className != null && className.startsWith("oracle.sql.DATE")) {
-//      val metaDataClassName = rs.getMetaData.getColumnClassName(index)
-//      return if (("java.sql.Timestamp" == metaDataClassName) || ("oracle.sql.TIMESTAMP" == metaDataClassName))
-//        rs.getTimestamp(index)
-//      else rs.getDate(index)
-//    }
-//    else if (obj.isInstanceOf[Date]) {
-//      if ("java.sql.Timestamp" == rs.getMetaData.getColumnClassName(index)) {
-//        return rs.getTimestamp(index)
-//      }
-//    }
-//    return obj
